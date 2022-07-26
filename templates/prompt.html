@@ -14,6 +14,8 @@
     <script type="text/javascript">
         const checkPushInterval = setInterval(checkPushStatus, 5000);
 
+        var checkPushStatusCounter = 0;
+
         function clearIntervals(){
             clearInterval(checkPushInterval);
         }
@@ -29,6 +31,15 @@
                 if(data.success){
                     clearIntervals();
                     document.getElementById("result").innerHTML="Test passed.";
+                }
+                else {
+                    checkPushStatusCounter++
+                    if(checkPushStatusCounter == 5){
+                        document.getElementById("result").innerHTML="Test failed. Trying again...";
+                    }
+                    if(checkPushStatusCounter == 6){
+                        location.reload();
+                    }
                 }
             }).catch(function() {
                 console.log("error");
