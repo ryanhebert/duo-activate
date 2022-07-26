@@ -1,0 +1,76 @@
+<!doctype html>
+<head>
+    <title>Hello Azure - Python Quickstart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<html>
+   <body>
+     <main>
+        <div id="qr_code" class="px-4 py-3 my-2 text-center">
+            <img src= "{{ qr_url }}" alt="Activation QR Code">
+            <div id="expiration"></div> 
+        </div>
+     </main>
+
+     <script>
+
+        const checkCodeInterval = setInterval(checkCode, 1000);
+        const checkActivationInterval = setInterval(checkActivation, 3000);
+
+        function clearIntervals(){
+            clearInterval(checkCodeInterval);
+            clearInterval(checkActivationInterval);
+        }
+
+        function checkCode(){
+
+            timeLeft = parseInt({{qr_expiration}})-Math.round(Date.now()/1000)
+
+            if(timeLeft < 1) {
+                console.log('The activation code has expired.')
+                location.reload();
+            } else {
+                document.getElementById("expiration").innerHTML=timeLeft;
+            }
+        }
+
+        function checkToken(){
+
+            timeLeft = parseInt({{access_token}})-Math.round(Date.now()/1000)
+
+            if(timeLeft < 1) {
+                console.log('The access token has expired.')
+                location.reload();
+            }
+        }
+
+        function checkActivation(){
+            var url = "{{url_for('check_activation')}}";
+
+            fetch(url).then(function(response) {
+                return response.json();
+            }).then(function(data) {
+                console.log(data)
+                if(data.activated){
+                    clearIntervals();
+                    document.getElementById("qr_code").innerHTML="Successfully activated Duo Mobile.";
+                    setTimeout(function(){
+                        location.replace("{{url_for('test_mfa')}}");
+                    }, 5000);
+                }
+            }).catch(function() {
+                console.log("error");
+            });
+        }
+
+        window.onload = (event) => {
+            console.log('The page is fully loaded.');
+            checkCode();
+            checkToken();
+            checkActivation();
+        };
+    </script>
+
+   </body>
+</html>
