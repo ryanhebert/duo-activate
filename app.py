@@ -193,6 +193,13 @@ class Duo_enroll:
          self.duo_activation_expiration = time() + int(activation['valid_secs'])
          self.duo_installation_url = activation['installation_url']
 
+   def reset(self):
+      self.duo_new_phone = None
+      self.duo_activation_barcode = None
+      self.duo_activation_url = None
+      self.duo_activation_expiration = 0
+      self.duo_installation_url = None
+
    def test_duo_auth_api(self):
 
       results = None
@@ -224,6 +231,7 @@ app = Flask(__name__)
 def index():
 
    token = None
+   
    
    if token is None:
       token = request.headers['X-Ms-Token-Aad-Id-Token']
@@ -284,6 +292,10 @@ def check_push():
 
    txid = request.args['txid']
    status = duo.duo_auth_client.auth_status(txid)
+
+   if status['success']:
+      duo.reset()
+
    print(status)
    return status
 
@@ -293,8 +305,8 @@ def check_activation():
    # still need to account for token?
    global duo
    phone = duo.duo_admin_client.get_phone_by_id(duo.duo_new_phone['phone_id'])
-
    response = '{"activated" : %s}' % str(phone['activated']).lower()
+
    return response
 
 if __name__ == '__main__':
